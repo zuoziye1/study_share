@@ -1,0 +1,2 @@
+sql 中distinct和group by 去重效率分析
+一，在hive中的分析
