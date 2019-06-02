@@ -1,2 +1,15 @@
 sql 中distinct和group by 去重效率分析
 一，在hive中的分析
+在10亿级别上做了相关实验，使用distinct的速度要比group by的速度快1/3。
+虽然group by 先基于数据本地性做reduce操作，最后在shuffle到一个节点上，
+但基于mr的任务要有文件的写入和读取过程这样拉慢数据处理速度。得出
+结论是distinct要比group by快。
+二，在presto中的分析
+这与hive基于mr任务过程相反，由于基于内存计算，数据先基于数据本地性，
+在单个node上计算保存内存中，然后在shuffle;distinct在语法解析上得到了
+优化，实现的过程基本和group by一样，但是排序去重过程时间复杂度为O(nlgn)
+比group by O(n)慢，差不多distinct比group by慢1/3。
+三，在MySQL中的分析
+group by 会默认实现排序，基于内存排序过程，而distinct没有这个过程，在某些
+可情况下可能导致group by的去重效率还低于distinct，结论为在mysql中两者效率基本一样；
+在有索引的情况下，完全一样，两者基于有序索引进行操作。
